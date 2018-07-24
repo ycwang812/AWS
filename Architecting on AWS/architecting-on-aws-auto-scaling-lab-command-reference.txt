@@ -1,0 +1,37 @@
+Architecting on AWS: Getting Started with Auto Scaling
+
+==================================================================================================================
+
+Using this command reference. 
+
+==================================================================================================================
+
+1. Locate the section you need. Each section in this file matches a section in the lab instructions.
+
+2. Replace items in brackets - [] - with appropriate values. For example, in this command you would replace the value - [JobFlowID] - (including the brackets) with the parameter indicated in the lab instructions: 
+
+elastic-mapreduce --list [JobFlowID]
+
+3. Do NOT enable the Word Wrap feature in Windows Notepad or the text editor you use to view this file.
+
+
+==================================================================================================================
+
+Creating a Launch Configuration
+
+==================================================================================================================
+
+#!/bin/sh
+yum -y install httpd php mysql php-mysql
+chkconfig httpd on
+/etc/init.d/httpd start
+cd /tmp
+wget https://us-west-2-aws-training.s3.amazonaws.com/architecting-lab-2-autoscaling-3.1/static/examplefiles-as.zip
+unzip examplefiles-as.zip
+mv examplefiles-as/* /var/www/html
+
+
+
+
+
+© 2013 Amazon Web Services, Inc. or its affiliates. All rights reserved.

@@ -1,0 +1,38 @@
+Architecting on AWS: Creating Your First VPC
+
+==================================================================================================================
+
+Using this command reference. 
+
+==================================================================================================================
+
+1. Locate the section you need. Each section in this file matches a section in the lab instructions.
+
+2. Replace items in brackets - [] - with appropriate values. For example, in this command you would replace the value - [JobFlowID] - (including the brackets) with the parameter indicated in the lab instructions: 
+
+elastic-mapreduce --list [JobFlowID]
+
+3. Do NOT enable the Word Wrap feature in Windows Notepad or the text editor you use to view this file.
+
+
+
+++++ Launch a Web server ++++
+
+
+==================================================================================================================
+
+ User data for Web server instance
+
+==================================================================================================================
+
+
+#!/bin/sh
+yum -y install httpd
+chkconfig httpd on
+/etc/init.d/httpd start
+
+
+
+
+
+© 2013 Amazon Web Services, Inc. or its affiliates. All rights reserved.
