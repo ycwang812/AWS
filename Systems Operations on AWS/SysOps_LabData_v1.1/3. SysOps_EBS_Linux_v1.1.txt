@@ -1,0 +1,377 @@
+Systems Operations on AWS v1.1
+
+
+++++  Lab 3: EBS - Linux  ++++
+
+
+This file contains the UserData content that you need to complete the EBS Linux lab.
+
+To use this file:
+
+1. Locate the section you need. Each section in this file matches a section in the lab instructions.
+
+2. Replace items in brackets - [] - with appropriate values. For example, in this command you would replace the value - [JobFlowID] - (including the brackets) with the parameter indicated in the lab instructions: 
+
+   elastic-mapreduce --list [JobFlowID]
+
+3. Do NOT enable the Word Wrap feature in Windows Notepad or the text editor you use to view this file.
+ 
+
+
+=====================================================================================================================
+
+Using AWS Command Line Interface
+
+=====================================================================================================================
+
+If not in the home directory, change directory to the EC2-user home directory
+
+=====================================================================================================================
+cd
+=====================================================================================================================
+
+In qwikLAB environments, the configuration file is created for you already. Here is a sample of commented configurable fields you can specify to get the AWS CLI to behave differently.
+
+=====================================================================================================================
+[default]
+#aws_access_key_id=AKIAYourAccessKey
+#aws_secret_access_key=ASDFyourSecretAccess
+region=xy-region-1
+#output=text
+=====================================================================================================================
+
+Show the contents of your aws_cli_config file
+
+=====================================================================================================================
+cat aws_cli_config
+=====================================================================================================================
+
+EC2 regions - get the global list 
+
+=====================================================================================================================
+aws ec2 describe-regions
+=====================================================================================================================
+
+=====================================================================================================================
+=====================================================================================================================
+
+Working with Volumes
+
+====================================================================================================================
+=====================================================================================================================
+
+Getting Instance IDs
+
+Retrieve the STorage Server instance ID and set it to a local variable:
+
+=====================================================================================================================
+export STORAGE_SERVER_ID=$(aws ec2 describe-instances --filter Name=tag:Name,Values=STORAGE --query "Reservations[*].Instances[*].InstanceId") --output text)
+=====================================================================================================================
+
+Resizing Boot Volumes
+
+Notice there is an attached volume ID on your EC2 instance:
+
+=====================================================================================================================
+aws ec2 describe-instances --instance-ids $STORAGE_SERVER_ID
+=====================================================================================================================
+
+If the output is too verbose for you to find the AZ, you can filter it by running the following: 
+
+=====================================================================================================================
+aws ec2 describe-instances --instance-ids $STORAGE_SERVER_ID | grep Zone
+=====================================================================================================================
+
+Notice the volume is attached and the size is 8GB:
+
+=====================================================================================================================
+aws ec2 describe-volumes --volume-ids vol-TheSmallDefaultVolume
+=====================================================================================================================
+
+Initiate a snapshot of the 8GB volume
+
+=====================================================================================================================
+aws ec2 create-snapshot --volume-id vol-TheSmallDefaultVolume
+=====================================================================================================================
+
+Watch the snapshot progress
+
+=====================================================================================================================
+aws ec2 describe-snapshots --snapshot-ids snap-YourVolumesSnapshot
+=====================================================================================================================
+
+Create a larger 10GB volume based on the snapshot
+
+=====================================================================================================================
+aws ec2 create-volume --snapshot-id snap-YourVolumesSnapshot --size 10 --availability-zone az-asdf-1a
+=====================================================================================================================
+
+Run/re-run this comand as needed to watch progress
+
+=====================================================================================================================
+aws ec2 describe-volumes --volume-ids vol-TheLargerVolume
+=====================================================================================================================
+
+Detach the old small volume and attach the new larger volume. Stop the instance.
+
+=====================================================================================================================
+aws ec2 stop-instances --instance-id $STORAGE_SERVER_ID
+=====================================================================================================================
+
+Detach the old volume:
+
+=====================================================================================================================
+aws ec2 detach-volume --volume-id vol-TheSmallDefaultVolume
+=====================================================================================================================
+
+Make sure the small volume state changes to available to ensure dtaching completed
+
+=====================================================================================================================
+aws ec2 describe-volumes --volume-ids vol-TheSmallDefaultVolume
+=====================================================================================================================
+
+When the small volume has successfully detached you may attach the larger volume
+
+=====================================================================================================================
+aws ec2 attach-volume --volume-id vol-TheLargerVolume --instance-id $STORAGE_SERVER_ID --device /dev/sda1
+=====================================================================================================================
+
+Watch status of the attachment
+
+=====================================================================================================================
+aws ec2 describe-volumes --volume-ids vol-TheLargerVolume
+=====================================================================================================================
+
+Start the EC2 instance an it will use the new, larger volume
+
+=====================================================================================================================
+aws ec2 start-instances --instance-id $STORAGE_SERVER_ID
+=====================================================================================================================
+
+Watch the new instance enter a running state
+
+=====================================================================================================================
+aws ec2 describe-instances --instance-ids $STORAGE_SERVER_ID --query "Reservations[*].Instances[*].State.Name"
+=====================================================================================================================
+
+Notice the old 8GB volume is no longer connected to anything and the state is available
+
+=====================================================================================================================
+aws ec2 describe-volumes --volume-ids vol-TheSmallDefaultVolume
+=====================================================================================================================
+
+Notice again that the new 10GB volume is attached to our EC2 instance and the state is in-use.
+
+=====================================================================================================================
+aws ec2 describe-volumes --volume-ids vol-TheLargerVolume
+=====================================================================================================================
+
+Retrieve the PublicIp of your new Storage Server.  We will refer to this value as StorageHostIp.
+
+=====================================================================================================================
+aws ec2 describe-instances --instance-id $STORAGE_SERVER_ID --query "Reservations[*].Instances[*].NetworkInterfaces[*].Association.PublicIp"
+=====================================================================================================================
+
+SSH from your host into the EC2 instance (storage server) created for you
+
+=====================================================================================================================
+ssh -i YourFile.pem ec2-user@StorageHostIp
+=====================================================================================================================
+
+Use the command df -h to view the volume information in the storage instance. Notice it is not using all of the available disk space yet.
+
+=====================================================================================================================
+df -h
+=====================================================================================================================
+
+Tell the OS to incorporate the newly available disk space with the resize2fs command.
+
+=====================================================================================================================
+sudo resize2fs /dev/sda1
+=====================================================================================================================
+
+Use df -h again to see that the OS recognizes (and can use) the newly available disk space
+
+=====================================================================================================================
+df –h
+=====================================================================================================================
+
+Return to your original console on the bastion host, and safely delete the old 8GB volume:
+
+=====================================================================================================================
+aws ec2 delete-volume --volume-id vol-TheSmallDefaultVolume
+=====================================================================================================================
+
+Delete the intermediate snapshot
+
+=====================================================================================================================
+aws ec2 delete-snapshot --snapshot-id snap-YourVolumesSnapshot
+=====================================================================================================================
+
+Working with Ancillary Volumes
+
+Before we attach a drive to an instance, we will stop the instance first.  Run the following command to stop your new storage server.
+
+=====================================================================================================================
+aws ec2 stop-instances --instance-id $STORAGE_SERVER_ID
+=====================================================================================================================
+
+Create a PIOPs volume, and attach it to your new database server
+
+=====================================================================================================================
+aws ec2 create-volume --availability-zone az-asdf-1a --size 20 \
+--volume-type io1 --iops 600
+=====================================================================================================================
+
+Watch the drive until is has been created and is available
+
+=====================================================================================================================
+aws ec2 describe-volumes --volume-id vol-FastDrive
+=====================================================================================================================
+
+Attach the new fast drive to your new database server using the following command
+
+=====================================================================================================================
+aws ec2 attach-volume --volume-id vol-FastDrive --instance-id $STORAGE_SERVER_ID --device /dev/sdc
+=====================================================================================================================
+
+Striping Volumes
+
+Create 4 volumes
+
+=====================================================================================================================
+aws ec2 create-volume --availability-zone az-asdf-1a --size 5
+=====================================================================================================================
+
+Watch the creation status of the two new volumes until they become available
+
+=====================================================================================================================
+aws ec2 describe-volumes --volume-ids vol-stripe1 vol-stripe2 vol-stripe3 \
+vol-stripe4
+=====================================================================================================================
+
+Attach the newly created volumes to your new server 
+
+=====================================================================================================================
+aws ec2 attach-volume --volume-id vol-stripe1 --instance-id $STORAGE_SERVER_ID --device /dev/sdc
+=====================================================================================================================
+
+Striping Provisioned IOPS Volumes
+
+First, create 4 volumes by repeating the following command
+
+======================================================================================================================
+aws ec2 create-volume --availability-zone az-asdf-1a --size 10 \
+--volume-type io1 --iops 200
+=====================================================================================================================
+
+Watch the creation status of the two new volumes until they become available
+
+=====================================================================================================================
+aws ec2 describe-volumes --volume-ids vol-pstripe1 vol-pstripe2 vol-pstripe3 
+vol-stripe4
+=====================================================================================================================
+
+Attach the newly created volumes to your new server
+
+=====================================================================================================================
+aws ec2 attach-volume --volume-id vol-pstripe1 --instance-id $STORAGE_SERVER_ID --device /dev/sdh
+=====================================================================================================================
+
+Repeat the previous command, using the following mapping
+
+=====================================================================================================================
+aws ec2 attach-volume --volume-id vol-pstripe2 --instance-id $STORAGE_SERVER_ID --device /dev/sdi
+=====================================================================================================================
+aws ec2 attach-volume --volume-id vol-pstripe3 --instance-id $STORAGE_SERVER_ID --device /dev/sdj
+=====================================================================================================================
+aws ec2 attach-volume --volume-id vol-pstripe4 --instance-id $STORAGE_SERVER_ID --device /dev/sdk
+=====================================================================================================================
+
+Pre-warming Volumes
+
+With the new drives attached, you can start your new storage server 
+
+=====================================================================================================================
+aws ec2 start-instances --instance-id $STORAGE_SERVER_ID
+=====================================================================================================================
+
+Like before, SSH from your host to the provided storage server 
+
+=====================================================================================================================
+ssh -i YourFile.pem ec2-user@StorageHostIp
+=====================================================================================================================
+
+Pre-warm the single PIOPS volume by running the following command:
+
+=====================================================================================================================
+sudo prewarm.py –-dev /dev/sdb
+=====================================================================================================================
+
+Get the OS to recognize your PIOPs volume by running the following commands:
+
+=====================================================================================================================
+sudo mkdir /mnt/piops1
+=====================================================================================================================
+sudo mkfs.ext3 /dev/sdb
+=====================================================================================================================
+sudo mount /dev/sdb /mnt/piops1
+=====================================================================================================================
+
+Get the OS to pre-warm, stripe, and then recognize your additional volumes with this series of commands
+
+=====================================================================================================================
+sudo mkdir /mnt/stripe1 /mnt/stripe2
+=====================================================================================================================
+for dev in /dev/sdc /dev/sdd /dev/sde /dev/sdf /dev/sdg /dev/sdh \
+/dev/sdi /dev/sdj /dev/sdk; do sudo ./prewarm.py --dev ${dev}; done;
+=====================================================================================================================
+sudo vgcreate vg1 /dev/sdd /dev/sde /dev/sdf /dev/sdg
+sudo vgcreate vg2 /dev/sdh /dev/sdi /dev/sdj /dev/sdk
+=====================================================================================================================
+sudo lvcreate -i2 --size 10G -n lv1 vg1
+sudo lvcreate -i2 --size 10G -n lv2 vg2
+=====================================================================================================================
+
+The parameter -i in the lvcreate command specifies the number of physical volumes to stripe across. 
+If you wanted to stripe across more than 2 drives, you would have to specify that number.
+
+=====================================================================================================================
+sudo mkfs.ext3 /dev/vg1/lv1
+sudo mkfs.ext3 /dev/vg2/lv2
+=====================================================================================================================
+sudo mount /dev/vg1/lv1 /mnt/stripe1
+sudo mount /dev/vg2/lv2 /mnt/stripe2
+=====================================================================================================================
+
+Next, update /etc/fstab to ensure these mounted drives are automatically mounted on reboot.
+
+=====================================================================================================================
+sudo vi /etc/fstab
+=====================================================================================================================
+
+Type i to put vi into insert mode, then append the following lines
+
+=====================================================================================================================
+/dev/sdb     /mnt/piops1   ext3     defaults       0    2
+/dev/vg1/lv1 /mnt/stripe1  ext3     defaults       0    2
+/dev/vg2/lv2 /mnt/stripe2  ext3     defaults       0    2
+=====================================================================================================================
+
+You can now verify that your new volumes are available 
+
+=====================================================================================================================
+df -h
+=====================================================================================================================
+
+Comparing Standard Iops, Provisioned IOPS, and Combined Provisioned IOPS
+
+Perform random read/writes on a 512MB files objece and replace targetmound from the adjoined table
+
+=====================================================================================================================
+
+fio --directory=target-mount --rw=randrw --bs=512 --size=512m --runtime=90 \
+--name=filerw
+=====================================================================================================================
+
+© 2013, 2014 Amazon Web Services, Inc. or its affiliates. All rights reserved.

@@ -1,0 +1,49 @@
+﻿Systems Operations on AWS v1.1
+
+
+++++ Lab 7: Event Collection-Linux ++++
+
+
+This file contains the UserData content that you need to complete the Event Collection Linux lab.
+
+To use this file:
+
+1. Locate the section you need. Each section in this file matches a section in the lab instructions.
+
+2. Do NOT enable the Word Wrap feature in Windows Notepad or the text editor you use to view this file.
+
+==================================================================================================================
+
+Getting Events with the AWS CLI - View RDS events
+
+==================================================================================================================
+
+
+aws rds describe-events
+
+
+==================================================================================================================
+
+Connect to the Linux Bastion Server (OS X AND LINUX)
+
+==================================================================================================================
+
+chmod 600 ~/Downloads/qwiklab-l33-5018.pem
+ssh –i ~/Downloads/qwiklab-l33-5018.pem ec2-user@ec2-23-22-87-238.compute-1.amazonaws.com
+
+
+==================================================================================================================
+
+Connect to a Linux Instance from a Linux Bastion Host (Linux)
+
+==================================================================================================================
+
+
+chmod 600 ~/awsstudent.id.rsa
+ssh –i ~/awsstudent.id.rsa ec2-user@(IP ADDRESS OF REMOTE HOST)
+
+
+==================================================================================================================
+
+© 2013, 2014 Amazon Web Services, Inc. or its affiliates. All rights reserved.
+

@@ -1,0 +1,103 @@
+﻿Systems Operations on AWS v1.1
+
+
+++++ Lab 9: Creating an Elastic Infrastructure - Linux ++++
+
+
+This file contains the content that you need to complete the Elastic Infrastructure - Linux lab.
+
+To use this file:
+
+1. Locate the section you need. Each section in this file matches a section in the lab instructions.
+
+2. Replace items in brackets - <> - with appropriate values. For example, in this command you would replace the value - <JobFlowID> - including the brackets with the parameter indicated in the lab instructions: 
+
+   elastic-mapreduce --list <JobFlowID>
+
+3. Do NOT enable the Word Wrap feature in Windows Notepad or the text editor you use to view this file.
+
+==================================================================================================================
+Connect to the Linux Bastion Server (OS X AND LINUX)
+
+chmod 600 ~/Downloads/qwiklab-l33-5018.pem
+ssh –i ~/Downloads/qwiklab-l33-5018.pem ec2-user@ec2-23-22-87-238.compute-1.amazonaws.com
+==================================================================================================================
+Look at the UserData file 
+
+base64 -d /home/ec2-user/UserData
+==================================================================================================================
+Retrieve AMI image-id, websecuritygroup ids and publicsubnets from a file in your home directory
+
+cat /home/ec2-user/lab-details.txt
+==================================================================================================================
+Create a new Instance with customizations
+
+aws ec2 run-instances --key-name <qwikLABS-xxxx-xxx> --instance-type m1.small --image-id <AMIId> --security-group-ids <ALLSecurityGroupID> --subnet-id <PublicSubnetID> --user-data file:///home/ec2-user/UserData --associate-public-ip-address
+==================================================================================================================
+Check the instance creation 
+
+aws ec2 describe-instance-status --instance-id <Instance-Id>
+==================================================================================================================
+Stop the instance via the management console or the AWS CLI
+
+aws ec2 stop-instances --instance-ids <Instance-Id>
+==================================================================================================================
+Create an AMI from the instance
+
+aws ec2 create-image --name WEBSERVER --instance-id <Instance-Id>
+==================================================================================================================
+==================================================================================================================
+BONUS ACTIVITY
+==================================================================================================================
+==================================================================================================================
+Creating an Elastic Load Balancer
+
+aws elb create-load-balancer --load-balancer-name ASLoadBalancer --listeners "LoadBalancerPort=80,InstancePort=80,Protocol=http,InstanceProtocol=http" --subnets <PublicSubnet1> <PublicSubnet2> --security-groups <ELBSecurityGroup>
+==================================================================================================================
+Configure the health checks
+
+aws elb configure-health-check --load-balancer-name ASLoadBalancer --health-check Target=HTTP:80/index.php,Interval=15,Timeout=5,UnhealthyThreshold=3,HealthyThreshold=2
+==================================================================================================================
+Validate your ELB 
+
+aws elb describe-load-balancers
+==================================================================================================================
+Creating an Auto Scaling Launch Configuration
+
+aws autoscaling create-launch-configuration --instance-type m1.small --key-name <qwikLABS-xxxx-xxx> --launch-configuration-name ASLaunchConfiguration --image-id <customAMIid> --security-groups <WebSecurityGroup>
+==================================================================================================================
+Double check the launch configuration parameters to verify the command completed with expected results
+
+aws autoscaling describe-launch-configurations
+==================================================================================================================
+Create an Auto Scaling group to determine the resources to be used for the Auto Scaling of the web instances
+
+aws autoscaling create-auto-scaling-group --auto-scaling-group-name WebserversASGroup --launch-configuration-name ASLaunchConfiguration --min-size 2 --max-size 4 --desired-capacity 2 --health-check-type ELB --health-check-grace-period 300 --load-balancer-name ASLoadBalancer --vpc-zone-identifier <PublicSubnet1>,<PublicSubnet2>
+==================================================================================================================
+Validate your new Auto Scaling group
+
+aws autoscaling describe-auto-scaling-groupsaws autoscaling describe-auto-scaling-groups
+==================================================================================================================
+Validate the Auto Scaling instance that is recognized within the Auto Scaling group
+
+aws autoscaling describe-auto-scaling-instances
+==================================================================================================================
+Validate Auto Scaling functionality by terminating an instance
+
+aws ec2 terminate-instances --instance-ids <instance-id>
+==================================================================================================================
+Describe the Auto Scaling instances again
+
+aws autoscaling describe-auto-scaling-instances
+==================================================================================================================
+Configure Auto Scale Policies - configure the scale up policy first
+
+aws autoscaling put-scaling-policy --auto-scaling-group-name WebserversASGroup --policy-name ASscaleUPpolicy --scaling-adjustment 1 --adjustment-type ChangeInCapacity --cooldown 300
+==================================================================================================================
+Create the scale down policy
+
+aws autoscaling put-scaling-policy --auto-scaling-group-name WebserversASGroup --policy-name ASscaleDownpolicy --scaling-adjustment -1 --adjustment-type ChangeInCapacity --cooldown 300
+==================================================================================================================
+==================================================================================================================
+
+© 2013, 2014 Amazon Web Services, Inc. or its affiliates. All rights reserved.

@@ -1,0 +1,58 @@
+﻿Systems Operations on AWS v1.1
+
+
+++++ Lab 7: Event Collection-Windows ++++
+
+
+This file contains the UserData content that you need to complete the Event Collection Windows lab.
+
+To use this file:
+
+1. Locate the section you need. Each section in this file matches a section in the lab instructions.
+
+2. Do NOT enable the Word Wrap feature in Windows Notepad or the text editor you use to view this file.
+
+==================================================================================================================
+
+Getting Events with the AWS CLI - View RDS events
+
+==================================================================================================================
+
+
+aws rds describe-events
+
+
+==================================================================================================================
+
+Connect to a Windows Instance from a Windows Bastion Instance
+
+==================================================================================================================
+
+
+aws ec2 get-password-data --instance-id [YourInstanceID] --priv-launch-key C:\Users\Administrator\awsstudent.id.rsa
+
+
+==================================================================================================================
+
+Copy the value for PasswordData from the command output
+
+==================================================================================================================
+
+{
+    "InstanceId": "i-instanceID",
+    "Timestamp": "YY-MM-DDTHH:MM:SS.FFFZ",
+    "PasswordData": "*********"
+}
+
+
+==================================================================================================================
+
+Appendix B: Using PowerShell cmdlets
+
+==================================================================================================================
+
+Get-RDSEvent -Region [yourregion] -AccessKey AKIAIOSFODNN7EXAMPLE -SecretKey wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+
+==================================================================================================================
+
+© 2013, 2014 Amazon Web Services, Inc. or its affiliates. All rights reserved.

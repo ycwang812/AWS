@@ -1,0 +1,107 @@
+﻿Systems Operations on AWS v1.1
+
+
+++++ Lab 4: Tagging-Linux ++++
+
+
+This file contains the UserData content that you need to complete the Tagging Linux lab.
+
+To use this file:
+
+1. Locate the section you need. Each section in this file matches a section in the lab instructions.
+
+2. Replace items in brackets - [] - with appropriate values. For example, in this command you would replace the value - [JobFlowID] - (including the brackets) with the parameter indicated in the lab instructions: 
+
+   elastic-mapreduce --list [JobFlowID]
+
+3. Do NOT enable the Word Wrap feature in Windows Notepad or the text editor you use to view this file.
+==================================================================================================================
+
+Working with the Tagging CLI
+
+==================================================================================================================
+
+
+aws ec2 describe-tags
+
+
+==================================================================================================================
+
+Search explicitly for the tags pertaining to the instance that was just edited in the AWS Management Console
+
+==================================================================================================================
+
+
+aws ec2 describe-tags --filters "Name=resource-id,Values=i-01234567"
+
+
+==================================================================================================================
+
+Alternately, try searching for any tags with the key “Student Email”: 
+
+==================================================================================================================
+
+
+aws ec2 describe-tags --filters "Name=key,Values=[Student Email]"
+
+
+==================================================================================================================
+
+You can add or modify tags using the aws ec2 create-tags command.  Try changing the number of the 
+Cost Center in the instance you just modified.
+
+==================================================================================================================
+
+
+aws ec2 create-tags --resources i-01234567 --tags "Key=Cost Center,Value=2001"
+
+
+==================================================================================================================
+
+Delete the custom tag created previously
+
+==================================================================================================================
+
+
+aws ec2 delete-tags --resources i-01234567 --tags "Key=[Student Email]"
+
+	
+==================================================================================================================
+
+Bonus Activity: Find all instances associated with Cost Center 1000
+
+==================================================================================================================
+
+
+aws ec2 describe-tags --filters Name=key,Values="Cost Center",Name=value,Values=1000
+
+
+==================================================================================================================
+
+Change all tags of “Cost Center=1000” to “Cost Center=1001” 
+
+==================================================================================================================
+
+
+instance	i-01234567	1000	Cost Center
+
+
+==================================================================================================================
+
+Pipe it through awk to extract all the instances, then pipe that through “aws ec2 create-tags”
+
+==================================================================================================================
+
+
+aws ec2 describe-tags --filters Name=key,Values="Cost Center",Name=value,Values=1000 --output text | awk '{print $4}' | while read instance ; do aws ec2 create-tags --resources $instance --tags Key="Cost Center",Value=1001 ; done
+
+
+==================================================================================================================
+
+ 
+© 2013 Amazon Web Services, Inc. or its affiliates. All rights reserved.
+==================================================================================================================
+
+
+
+
