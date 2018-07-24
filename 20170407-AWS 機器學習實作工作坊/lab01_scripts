@@ -1,0 +1,24 @@
+## Receipe For The Telco Churn Lab
+
+{
+  "groups": {
+    "NUMERIC_VARS_NORM": "group('Intl Charge','Night Calls','Day Calls','Eve Calls','Eve Mins','Intl Mins','VMail Message','Intl Calls','Day Mins','Night Mins','Day Charge','Night Charge','Eve Charge','Account Length')"
+  },
+  "assignments": {},
+  "outputs": [
+    "ALL_BINARY",
+    "State",
+    "Area Code",
+    "normalize(NUMERIC_VARS_NORM)",
+    "CustServ Calls"
+  ]
+}
+
+## Cost Evaluation
+
+./cost_based_ml.py --ml-model-id=[ML ID] --test-datasource-id [test datasource id] --output-uri-s3 [output s3 bucket url]
+
+
+## Try real-time prediction
+
+32,services,divorced,basic.9y,no,unknown,yes,cellular,dec,mon,110,1,11,0,nonexistent,-1.8,94.465,-36.1,0.883,5228.1
