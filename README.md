@@ -1,14 +1,16 @@
 # AWS
 ### Amazon Web Service
 
-Architecture Whitepapers from AWS
+AWSome Day
 
-AWS Certified Cloud Practitioner
+Architecture Whitepapers - https://aws.amazon.com/tw/whitepapers/
 
-AWS Reference Architectures
+Doc
 
-AWS Simple Icons for Architecture Diagrams
+Reference Architectures - https://aws.amazon.com/tw/architecture/
 
-AWS Training and Certification
+Simple Icons for Architecture Diagrams - https://aws.amazon.com/tw/architecture/icons/
 
-AWS Workshop
+Training and Certification - https://www.aws.training
+
+Workshop
